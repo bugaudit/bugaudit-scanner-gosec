@@ -11,6 +11,7 @@ import me.shib.bugaudit.commons.BugAuditException;
 import me.shib.bugaudit.scanner.BugAuditScanner;
 import me.shib.bugaudit.scanner.Lang;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.List;
 
 public final class GoSecScanner extends BugAuditScanner {
 
-    private static transient final Lang lang = Lang.GoLang;
+    private static transient final Lang lang = Lang.Go;
     private static transient final String tool = "GoSec";
 
     private BugAuditScanResult result;
@@ -70,8 +71,10 @@ public final class GoSecScanner extends BugAuditScanner {
             goSecObject.setFile((String) issue.get("file"));
             goSecObject.setCode((String) issue.get("code"));
             goSecObject.setLine((String) issue.get("line"));
-            goSecObject.setInstanceHash(Double.toString(Math.random()));   //Need to be handled
 
+            File bugFile = new File(goSecObject.getFile());
+            String instanceHash = getHash(bugFile,Integer.parseInt(goSecObject.getLine()),goSecObject.getDetails(),null);
+            goSecObject.setInstanceHash(instanceHash);
             issueList.add(goSecObject);
         }
 
@@ -110,8 +113,8 @@ public final class GoSecScanner extends BugAuditScanner {
     }
 
     @Override
-    protected Lang getLang() {
-        return lang;
+    protected boolean isLangSupported(Lang lang) {
+        return lang == GoSecScanner.lang;
     }
 
     @Override
