@@ -17,6 +17,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class GoSecScanner extends BugAuditScanner {
 
@@ -72,8 +74,24 @@ public final class GoSecScanner extends BugAuditScanner {
             goSecObject.setCode((String) issue.get("code"));
             goSecObject.setLine((String) issue.get("line"));
 
-            File bugFile = new File(goSecObject.getFile());
-            String instanceHash = getHash(bugFile,Integer.parseInt(goSecObject.getLine()),goSecObject.getDetails(),null);
+            String line = goSecObject.getLine();
+            String instanceHash="";
+            Pattern pattern = Pattern.compile("([0-9]+)\\-?([0-9]+)?");
+            Matcher matcher = pattern.matcher(line);
+            if(matcher.find()){
+                int startLine=0,endLine=0;
+                if(matcher.group(1) != null)
+                    startLine = Integer.parseInt(matcher.group(1));
+                if(matcher.group(2) != null)
+                    endLine = Integer.parseInt(matcher.group(2));
+
+                File bugFile = new File(goSecObject.getFile());
+                if(startLine != 0 && endLine != 0)
+                    instanceHash = getHash(bugFile,startLine,endLine,goSecObject.getDetails(),null);
+                else if(endLine == 0)
+                    instanceHash = getHash(bugFile,startLine,goSecObject.getDetails(),null);
+            }
+
             goSecObject.setInstanceHash(instanceHash);
             issueList.add(goSecObject);
         }
